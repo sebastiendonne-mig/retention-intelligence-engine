@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Retention Intelligence Engine — Data PM Case Study</title>
+  <meta name="description" content="A Data Product Manager case study: AI-powered churn prediction for a green energy provider. Frugal ML, serverless architecture, Human in the Loop.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Reset & Tokens ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-900: #0D2B22;
+      --green-800: #1A3C34;
+      --green-700: #2D6A4F;
+      --green-500: #52B788;
+      --green-200: #D8F3DC;
+      --green-100: #F0FAF4;
+      --ink:       #1C1C1E;
+      --ink-soft:  #4A5568;
+      --ink-muted: #718096;
+      --rule:      #E2E8F0;
+      --white:     #FFFFFF;
+      --accent:    #E76F51;
+
+      --font-display: 'DM Serif Display', Georgia, serif;
+      --font-body:    'DM Sans', system-ui, sans-serif;
+      --font-mono:    'DM Mono', 'Fira Code', monospace;
+
+      --max-w: 860px;
+      --col-gap: 2rem;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--ink);
+      background: var(--white);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Utility ────────────────────────────────────────────────────────── */
+    .container { max-width: var(--max-w); margin: 0 auto; padding: 0 1.5rem; }
+    .sr-only { position: absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+
+    /* ── Nav ────────────────────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--rule);
+    }
+    .nav-inner {
+      max-width: var(--max-w); margin: 0 auto; padding: 0 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 56px;
+    }
+    .nav-logo {
+      font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500;
+      color: var(--green-700); letter-spacing: 0.04em; text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+    .nav-links a {
+      font-size: 0.82rem; font-weight: 500; color: var(--ink-soft);
+      text-decoration: none; letter-spacing: 0.02em;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--green-700); }
+
+    /* ── Hero ───────────────────────────────────────────────────────────── */
+    .hero {
+      background: var(--green-900);
+      padding: 5rem 1.5rem 4rem;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 80% 20%, rgba(82,183,136,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-inner { max-width: var(--max-w); margin: 0 auto; }
+    .hero-tag {
+      display: inline-block;
+      font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500;
+      color: var(--green-500); letter-spacing: 0.1em; text-transform: uppercase;
+      border: 1px solid rgba(82,183,136,0.35); border-radius: 4px;
+      padding: 0.25rem 0.65rem; margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 3rem);
+      line-height: 1.15;
+      color: var(--white);
+      margin-bottom: 0.5rem;
+    }
+    .hero h1 em {
+      font-style: italic; color: var(--green-500);
+    }
+    .hero-sub {
+      font-size: 1rem; color: rgba(255,255,255,0.55);
+      margin-bottom: 2rem; font-weight: 300;
+    }
+    .hero-problem {
+      background: rgba(255,255,255,0.05);
+      border-left: 3px solid var(--green-500);
+      padding: 1rem 1.25rem;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 2.5rem;
+    }
+    .hero-problem p {
+      font-size: 0.95rem; color: rgba(255,255,255,0.78);
+      line-height: 1.65;
+    }
+    .hero-problem p + p { margin-top: 0.6rem; }
+    .hero-problem .lang { color: var(--green-500); font-weight: 600; }
+
+    /* KPI strip */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 8px; overflow: hidden;
+    }
+    .kpi-item {
+      background: rgba(255,255,255,0.03);
+      padding: 1rem 1.25rem;
+      transition: background 0.2s;
+    }
+    .kpi-item:hover { background: rgba(82,183,136,0.08); }
+    .kpi-value {
+      font-family: var(--font-display); font-size: 1.6rem;
+      color: var(--green-500); line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+    .kpi-label {
+      font-size: 0.72rem; color: rgba(255,255,255,0.45);
+      font-weight: 400; line-height: 1.3;
+    }
+
+    /* ── Sections ───────────────────────────────────────────────────────── */
+    section { padding: 4rem 1.5rem; }
+    section:nth-child(even) { background: var(--green-100); }
+
+    .section-tag {
+      font-family: var(--font-mono); font-size: 0.7rem; font-weight: 500;
+      color: var(--green-700); letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    h2 {
+      font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2rem);
+      color: var(--green-900); margin-bottom: 0.4rem; line-height: 1.2;
+    }
+    .section-intro {
+      font-size: 0.95rem; color: var(--ink-soft);
+      margin-bottom: 2.5rem; max-width: 600px;
+    }
+    .rule { height: 1px; background: var(--rule); margin-bottom: 2rem; }
+
+    /* ── Before/After ───────────────────────────────────────────────────── */
+    .ba-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+      background: var(--rule); border-radius: 8px; overflow: hidden;
+    }
+    .ba-col { background: var(--white); }
+    .ba-header {
+      padding: 0.75rem 1.25rem;
+      font-family: var(--font-mono); font-size: 0.72rem;
+      font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .ba-header.before { background: #FFF5F5; color: #C53030; }
+    .ba-header.after  { background: var(--green-200); color: var(--green-700); }
+    .ba-list { list-style: none; padding: 1rem 1.25rem; }
+    .ba-list li {
+      font-size: 0.88rem; color: var(--ink-soft);
+      padding: 0.5rem 0; border-bottom: 1px solid var(--rule);
+      display: flex; align-items: flex-start; gap: 0.5rem;
+    }
+    .ba-list li:last-child { border-bottom: none; }
+    .ba-list li::before { flex-shrink: 0; margin-top: 2px; }
+    .ba-col.before .ba-list li::before { content: '✗'; color: #FC8181; }
+    .ba-col.after  .ba-list li::before { content: '✓'; color: var(--green-500); }
+
+    /* ── Epic cards ─────────────────────────────────────────────────────── */
+    .epic-grid { display: grid; gap: 1.5rem; }
+    .epic-card {
+      border: 1px solid var(--rule); border-radius: 10px; overflow: hidden;
+    }
+    .epic-header {
+      padding: 1rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .epic-header.e1 { background: var(--green-800); }
+    .epic-header.e2 { background: var(--green-700); }
+    .epic-title {
+      font-family: var(--font-display); font-size: 1.1rem; color: var(--white);
+    }
+    .epic-meta {
+      font-family: var(--font-mono); font-size: 0.72rem; color: rgba(255,255,255,0.55);
+    }
+    .us-list { list-style: none; }
+    .us-item {
+      display: grid;
+      grid-template-columns: 5rem 1fr auto;
+      gap: 1rem; align-items: start;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--rule);
+      background: var(--white);
+      transition: background 0.15s;
+    }
+    .us-item:last-child { border-bottom: none; }
+    .us-item:hover { background: var(--green-100); }
+    .us-id {
+      font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500;
+      color: var(--green-700); padding-top: 2px;
+    }
+    .us-title {
+      font-size: 0.88rem; font-weight: 600; color: var(--ink);
+      margin-bottom: 0.2rem;
+    }
+    .us-desc { font-size: 0.8rem; color: var(--ink-muted); line-height: 1.5; }
+    .us-signal {
+      font-size: 0.72rem; color: var(--green-700); font-weight: 500;
+      background: var(--green-200); padding: 0.15rem 0.5rem;
+      border-radius: 4px; white-space: nowrap; align-self: start;
+      margin-top: 2px;
+    }
+    .us-badge {
+      display: inline-block;
+      font-family: var(--font-mono); font-size: 0.65rem; font-weight: 500;
+      padding: 0.1rem 0.4rem; border-radius: 3px; margin-top: 0.3rem;
+    }
+    .badge-crit { background: #FED7D7; color: #C53030; }
+    .badge-high { background: #FEEBC8; color: #C05621; }
+    .badge-impt { background: var(--green-200); color: var(--green-700); }
+
+    /* ── Roadmap ────────────────────────────────────────────────────────── */
+    .roadmap {
+      display: grid; grid-template-columns: repeat(5, 1fr);
+      gap: 1px; background: var(--rule);
+      border-radius: 8px; overflow: hidden;
+    }
+    .sprint-col { background: var(--white); }
+    .sprint-header {
+      background: var(--green-900); color: var(--white);
+      font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500;
+      padding: 0.6rem 0.75rem; text-align: center;
+    }
+    .sprint-body { padding: 0.75rem; min-height: 100px; }
+    .sprint-us {
+      font-size: 0.72rem; color: var(--ink-soft);
+      background: var(--green-100); border-radius: 4px;
+      padding: 0.35rem 0.5rem; margin-bottom: 0.4rem;
+      border-left: 3px solid var(--green-500);
+    }
+    .sprint-mvp {
+      font-family: var(--font-mono); font-size: 0.65rem; font-weight: 500;
+      color: var(--green-700); text-align: center;
+      padding: 0.35rem; background: var(--green-200);
+      border-radius: 4px; margin-top: 0.4rem;
+    }
+
+    /* ── Architecture ───────────────────────────────────────────────────── */
+    .arch-block {
+      background: var(--green-900);
+      border-radius: 10px; padding: 1.75rem;
+      overflow-x: auto;
+    }
+    .arch-block pre {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      color: var(--green-200); line-height: 1.7;
+      white-space: pre;
+    }
+    .arch-block pre .green { color: var(--green-500); }
+
+    /* ── Methodology pillars ────────────────────────────────────────────── */
+    .pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .pillar {
+      border: 1px solid var(--rule); border-radius: 10px; overflow: hidden;
+    }
+    .pillar-header {
+      padding: 1rem 1.25rem; background: var(--green-800);
+    }
+    .pillar-num {
+      font-family: var(--font-mono); font-size: 0.65rem; font-weight: 500;
+      color: var(--green-500); letter-spacing: 0.1em; margin-bottom: 0.25rem;
+    }
+    .pillar-title {
+      font-family: var(--font-display); font-size: 1rem; color: var(--white);
+      line-height: 1.2;
+    }
+    .pillar-body {
+      padding: 1.25rem; background: var(--white);
+    }
+    .pillar-body ul { list-style: none; }
+    .pillar-body li {
+      font-size: 0.82rem; color: var(--ink-soft);
+      padding: 0.4rem 0; border-bottom: 1px solid var(--rule);
+      display: flex; gap: 0.5rem;
+    }
+    .pillar-body li:last-child { border-bottom: none; }
+    .pillar-body li::before { content: '→'; color: var(--green-500); flex-shrink: 0; }
+    .pillar-quote {
+      margin-top: 0.75rem;
+      font-style: italic; font-size: 0.8rem;
+      color: var(--green-700); border-left: 2px solid var(--green-500);
+      padding-left: 0.75rem; line-height: 1.5;
+    }
+
+    /* ── HITL loop ──────────────────────────────────────────────────────── */
+    .hitl-loop {
+      display: flex; flex-wrap: wrap; align-items: center;
+      gap: 0; justify-content: center; margin: 1.5rem 0;
+    }
+    .loop-step {
+      background: var(--white); border: 1px solid var(--rule);
+      border-radius: 8px; padding: 0.75rem 1rem;
+      text-align: center; min-width: 110px;
+    }
+    .loop-step .step-icon { font-size: 1.2rem; margin-bottom: 0.25rem; }
+    .loop-step .step-label {
+      font-size: 0.72rem; color: var(--ink-soft); line-height: 1.3;
+    }
+    .loop-arrow {
+      color: var(--green-500); font-size: 1.2rem;
+      padding: 0 0.25rem; font-weight: 300;
+    }
+    .loop-arrow.down { transform: rotate(90deg); }
+
+    /* ── Green IT table ─────────────────────────────────────────────────── */
+    .green-table { width: 100%; border-collapse: collapse; border-radius: 8px; overflow: hidden; }
+    .green-table th {
+      background: var(--green-800); color: var(--white);
+      font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500;
+      padding: 0.75rem 1rem; text-align: left; letter-spacing: 0.05em;
+    }
+    .green-table td {
+      font-size: 0.85rem; padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--rule); vertical-align: top;
+    }
+    .green-table tr:last-child td { border-bottom: none; }
+    .green-table tr:nth-child(odd) td { background: var(--white); }
+    .green-table tr:nth-child(even) td { background: var(--green-100); }
+    .saving {
+      font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500;
+      color: var(--green-700); white-space: nowrap;
+    }
+
+    /* ── Stack tags ─────────────────────────────────────────────────────── */
+    .stack-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .stack-tag {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      color: var(--green-800); background: var(--green-200);
+      border: 1px solid rgba(45,106,79,0.2);
+      padding: 0.3rem 0.8rem; border-radius: 4px;
+      font-weight: 500;
+    }
+
+    /* ── Footer ─────────────────────────────────────────────────────────── */
+    footer {
+      background: var(--green-900); color: rgba(255,255,255,0.4);
+      padding: 2rem 1.5rem; text-align: center;
+    }
+    footer p { font-size: 0.78rem; line-height: 1.6; }
+    footer strong { color: rgba(255,255,255,0.7); }
+
+    /* ── Animations ─────────────────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero-inner > * {
+      animation: fadeUp 0.6s ease both;
+    }
+    .hero-inner > *:nth-child(1) { animation-delay: 0.05s; }
+    .hero-inner > *:nth-child(2) { animation-delay: 0.12s; }
+    .hero-inner > *:nth-child(3) { animation-delay: 0.18s; }
+    .hero-inner > *:nth-child(4) { animation-delay: 0.24s; }
+    .hero-inner > *:nth-child(5) { animation-delay: 0.3s; }
+
+    /* ── Responsive ─────────────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .pillars { grid-template-columns: 1fr; }
+      .roadmap { grid-template-columns: 1fr 1fr; }
+      .ba-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .us-item { grid-template-columns: 1fr; }
+      .us-signal { align-self: auto; }
+      .kpi-strip { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ──────────────────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">🔋 retention-engine</a>
+    <ul class="nav-links">
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#backlog">Backlog</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#methodology">Methodology</a></li>
+      <li><a href="#green">Green IT</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── Hero ─────────────────────────────────────────────────────────────── -->
+<header class="hero">
+  <div class="hero-inner">
+    <span class="hero-tag">Data Product Manager — Case Study</span>
+    <h1>Retention <em>Intelligence</em> Engine<br>Moteur d'Intelligence de Rétention</h1>
+    <p class="hero-sub">Green Energy Sector &nbsp;·&nbsp; AI &amp; MLOps &nbsp;·&nbsp; Agile / Scrum &nbsp;·&nbsp; AWS</p>
+
+    <div class="hero-problem">
+      <p><span class="lang">🇫🇷</span> Un fournisseur d'électricité 100% verte approche les 100 000 clients. Chaque point de churn non anticipé représente des millions d'euros de revenus perdus. L'entreprise n'a <strong style="color:#fff">aucune visibilité prédictive</strong> sur l'attrition.</p>
+      <p><span class="lang">🇬🇧</span> A 100% green electricity provider nears 100,000 customers. Every unanticipated churn point means millions in lost revenue. The company has <strong style="color:#fff">no predictive visibility</strong> on attrition.</p>
+    </div>
+
+    <div class="kpi-strip">
+      <div class="kpi-item">
+        <div class="kpi-value">100K</div>
+        <div class="kpi-label">Clients scorés / semaine<br>Customers scored weekly</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-value">&lt;200€</div>
+        <div class="kpi-label">Coût infra / mois<br>Infra cost / month</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-value">−75%</div>
+        <div class="kpi-label">Empreinte carbone<br>Carbon footprint</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-value">10 sem.</div>
+        <div class="kpi-label">Délai 1er score IA<br>First AI score delay</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-value">~2.4M€</div>
+        <div class="kpi-label">Revenus préservés / an<br>Revenue preserved / year</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ── Before / After ───────────────────────────────────────────────────── -->
+<section id="problem">
+  <div class="container">
+    <p class="section-tag">01 — The Problem</p>
+    <h2>Avant / Après · Before / After</h2>
+    <p class="section-intro">Le moteur transforme une approche réactive en une stratégie prédictive. The engine transforms a reactive approach into a predictive strategy.</p>
+    <div class="rule"></div>
+
+    <div class="ba-grid">
+      <div class="ba-col before">
+        <div class="ba-header before">Avant · Before</div>
+        <ul class="ba-list">
+          <li>Appels clients au hasard / Random customer calls</li>
+          <li>Taux de succès rétention ~5% / ~5% retention success rate</li>
+          <li>Aucune visibilité prédictive / No predictive visibility</li>
+          <li>Réaction après résiliation / Reaction after cancellation</li>
+          <li>Données silotées, non exploitées / Siloed, unexploited data</li>
+        </ul>
+      </div>
+      <div class="ba-col after">
+        <div class="ba-header after">Après · After</div>
+        <ul class="ba-list">
+          <li>50 clients prioritaires chaque lundi / 50 priority customers every Monday</li>
+          <li>Taux de succès cible 25–35% / Target success rate 25–35%</li>
+          <li>Score de Risque IA expliqué / Explained AI Risk Score</li>
+          <li>Action 90 jours avant le départ / Action 90 days before leaving</li>
+          <li>Pipeline serverless fiable et sobre / Reliable, frugal serverless pipeline</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Backlog ───────────────────────────────────────────────────────────── -->
+<section id="backlog">
+  <div class="container">
+    <p class="section-tag">02 — The Backlog</p>
+    <h2>2 Epics · 8 User Stories · 49 SP</h2>
+    <p class="section-intro">Deux épics enchaînés : la fondation data d'abord, le moteur IA ensuite. Two chained epics: data foundation first, AI engine second.</p>
+    <div class="rule"></div>
+
+    <div class="epic-grid">
+
+      <!-- Epic 1 -->
+      <div class="epic-card">
+        <div class="epic-header e1">
+          <span class="epic-title">Epic 1 — Pipeline de Données · Data Pipeline</span>
+          <span class="epic-meta">Sprints 1–3 · 26 SP</span>
+        </div>
+        <ul class="us-list">
+          <li class="us-item">
+            <span class="us-id">US-101</span>
+            <div>
+              <div class="us-title">Auth OAuth2 — Token Management</div>
+              <div class="us-desc">Authentification automatique auprès de l'API des compteurs intelligents. Gestion du cache, renouvellement et alerting. / Automatic authentication against smart meter API. Cache management, renewal and alerting.</div>
+              <span class="us-badge badge-crit">CRITIQUE · 5 SP · S1</span>
+            </div>
+            <span class="us-signal">Socle bloquant</span>
+          </li>
+          <li class="us-item">
+            <span class="us-id">US-102</span>
+            <div>
+              <div class="us-title">Ingestion Quotidienne B2C · Daily B2C Ingestion</div>
+              <div class="us-desc">Pipeline serverless collectant quotidiennement la consommation (kWh) pour 90K clients résidentiels. Idempotent, taux de complétion ≥95%. / Serverless pipeline collecting daily consumption (kWh) for 90K residential customers. Idempotent, ≥95% completion rate.</div>
+              <span class="us-badge badge-high">HAUTE · 8 SP · S1–2</span>
+            </div>
+            <span class="us-signal">Baisse conso B2C</span>
+          </li>
+          <li class="us-item">
+            <span class="us-id">US-103</span>
+            <div>
+              <div class="us-title">Ingestion Hebdo B2B · Weekly B2B Ingestion</div>
+              <div class="us-desc">Collecte hebdomadaire de la puissance max (kVA) pour 10K clients pro. Calcul automatique des dépassements et sous-utilisations de puissance souscrite. / Weekly collection of peak power (kVA) for 10K business customers. Auto-calculation of capacity overruns and under-usage.</div>
+              <span class="us-badge badge-high">HAUTE · 8 SP · S2</span>
+            </div>
+            <span class="us-signal">Dépassements B2B</span>
+          </li>
+          <li class="us-item">
+            <span class="us-id">US-104</span>
+            <div>
+              <div class="us-title">Data Quality Gate · Anomaly Detection</div>
+              <div class="us-desc">Module de détection d'anomalies intégré au pipeline. Tague les valeurs absentes, spikes et incohérences. Protège le jeu d'entraînement ML (principe GIGO). / Anomaly detection module embedded in the pipeline. Flags missing values, spikes and inconsistencies. Protects the ML training set (GIGO principle).</div>
+              <span class="us-badge badge-impt">IMPT · 5 SP · S2</span>
+            </div>
+            <span class="us-signal">Protection ML</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Epic 2 -->
+      <div class="epic-card">
+        <div class="epic-header e2">
+          <span class="epic-title">Epic 2 — Moteur IA & BI · AI Engine & BI</span>
+          <span class="epic-meta">Sprints 3–5 · 23 SP</span>
+        </div>
+        <ul class="us-list">
+          <li class="us-item">
+            <span class="us-id">US-201</span>
+            <div>
+              <div class="us-title">Entraînement Modèle Churn · Churn Model Training</div>
+              <div class="us-desc">Modèle AutoML (SageMaker Autopilot) entraîné sur les signaux R65/R66. Frugal : 10 candidats max, instances Spot, mode ENSEMBLING. AUC-ROC ≥0.72. / AutoML model trained on R65/R66 signals. Frugal: 10 max candidates, Spot instances, ENSEMBLING mode. AUC-ROC ≥0.72.</div>
+              <span class="us-badge badge-high">HAUTE · 8 SP · S3</span>
+            </div>
+            <span class="us-signal">SageMaker Autopilot</span>
+          </li>
+          <li class="us-item">
+            <span class="us-id">US-202</span>
+            <div>
+              <div class="us-title">Scoring Batch & Drift · Batch Scoring & Drift</div>
+              <div class="us-desc">Pipeline de scoring hebdomadaire (Batch Transform, pas d'endpoint permanent). Score [0–1] + tiers HIGH/MEDIUM/LOW. Model Monitor surveille la dérive (PSI). / Weekly scoring pipeline (Batch Transform, no permanent endpoint). Score [0–1] + HIGH/MEDIUM/LOW tiers. Model Monitor tracks drift (PSI).</div>
+              <span class="us-badge badge-high">HAUTE · 5 SP · S3–4</span>
+            </div>
+            <span class="us-signal">Batch Transform</span>
+          </li>
+          <li class="us-item">
+            <span class="us-id">US-203</span>
+            <div>
+              <div class="us-title">Dashboard Power BI · AI Risk Score Dashboard</div>
+              <div class="us-desc">Top 50 clients à risque chaque lundi, explications en langage naturel, filtres segment/région. Rafraîchissement automatique via API REST Power BI. / Top 50 at-risk customers every Monday, plain-language explanations, segment/region filters. Auto-refresh via Power BI REST API.</div>
+              <span class="us-badge badge-impt">IMPT · 5 SP · S4</span>
+            </div>
+            <span class="us-signal">Power BI</span>
+          </li>
+          <li class="us-item">
+            <span class="us-id">US-204</span>
+            <div>
+              <div class="us-title">Workflow HITL & Feedback Loop</div>
+              <div class="us-desc">Validation humaine obligatoire avant tout contact client. Boucle de rétroaction : feedbacks agents → correction labels → ré-entraînement. Ground truth à J+90. / Mandatory human validation before any customer contact. Feedback loop: agent feedback → label correction → retraining. Ground truth at D+90.</div>
+              <span class="us-badge badge-impt">IMPT · 5 SP · S4–5</span>
+            </div>
+            <span class="us-signal">HITL Loop</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Roadmap -->
+    <h3 style="font-family:var(--font-display);font-size:1.1rem;color:var(--green-900);margin:2rem 0 1rem;">🗓 Roadmap — 5 Sprints</h3>
+    <div class="roadmap">
+      <div class="sprint-col">
+        <div class="sprint-header">Sprint 1</div>
+        <div class="sprint-body">
+          <div class="sprint-us">US-101 Auth OAuth2</div>
+          <div class="sprint-us">US-102 Ingestion B2C</div>
+        </div>
+      </div>
+      <div class="sprint-col">
+        <div class="sprint-header">Sprint 2</div>
+        <div class="sprint-body">
+          <div class="sprint-us">US-102 (suite)</div>
+          <div class="sprint-us">US-103 B2B</div>
+          <div class="sprint-us">US-104 DQ Gate</div>
+        </div>
+      </div>
+      <div class="sprint-col">
+        <div class="sprint-header">Sprint 3</div>
+        <div class="sprint-body">
+          <div class="sprint-us">US-103 (suite)</div>
+          <div class="sprint-us">US-201 Modèle ML</div>
+          <div class="sprint-us">US-202 Scoring</div>
+        </div>
+      </div>
+      <div class="sprint-col">
+        <div class="sprint-header">Sprint 4</div>
+        <div class="sprint-body">
+          <div class="sprint-us">US-202 (suite)</div>
+          <div class="sprint-us">US-203 Power BI</div>
+          <div class="sprint-us">US-204 HITL</div>
+          <div class="sprint-mvp">🎯 MVP — 1ers scores IA</div>
+        </div>
+      </div>
+      <div class="sprint-col">
+        <div class="sprint-header">Sprint 5</div>
+        <div class="sprint-body">
+          <div class="sprint-us">US-204 (suite)</div>
+          <div class="sprint-us">Feedback loop</div>
+          <div class="sprint-us">Rapport ROI</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Architecture ──────────────────────────────────────────────────────── -->
+<section id="architecture">
+  <div class="container">
+    <p class="section-tag">03 — Architecture</p>
+    <h2>Serverless · Frugal · RGPD</h2>
+    <p class="section-intro">Architecture événementielle, zéro serveur idle, hébergée en région Paris (eu-west-3) pour la conformité RGPD. Event-driven, zero idle server, hosted in Paris region for GDPR compliance.</p>
+    <div class="rule"></div>
+
+    <div class="arch-block">
+      <pre>
+  [Smart Meter API · API Enedis V5]
+         │  OAuth2 client_credentials
+         ▼
+  [EventBridge Scheduler]  ──  Event-driven only · Zéro idle
+         │
+         ▼
+  [Lambda "ingest"]  ·  128-256 MB  ·  Python 3.12
+         ├── [Secrets Manager]   ← OAuth2 credentials (rotation 90j)
+         ├── [Parameter Store]   ← Token JWT cache
+         └── [Data Quality Gate] ← In-process · quality_flag 0/1/2
+                │
+                ▼
+  [TimescaleDB · Paris · RGPD]
+         ├── consumption_daily    (Hypertable · R65 · partitions mensuelles)
+         ├── power_demand_daily   (Hypertable · R66 · partitions trimestrielles)
+         ├── client_churn_signals (Table unifiée features ML)
+         └── agent_feedback       (Boucle HITL · ground truth J+90)
+                │
+                ▼
+  [Lambda "export-features"]  ──  Hebdomadaire · Dimanche · Anonymisé
+                │
+                ▼
+  [S3 · Données anonymisées · Aucune donnée personnelle]
+         │
+         ├──▶ [SageMaker Autopilot]   Entraînement trimestriel
+         │    MaxCandidates=10 · Spot · ENSEMBLING · ~20€
+         │           └──▶ [Model Registry]  versioning · champion/challenger
+         │
+         └──▶ [SageMaker Batch Transform]  Scoring hebdo · Dimanche 23h
+              Instance démarrée ~2h/semaine · Aucun endpoint permanent
+                         │
+                         ▼
+              [TimescaleDB ← churn_score · risk_tier]
+                         │
+                         ▼
+              [Power BI · Import · Refresh lundi 7h]
+                         │
+                         ▼
+              [Dashboard Marketing · Top 50 HIGH RISK]
+                         │
+                         ├──▶  [Formulaire HITL · 👍/👎/❓]
+                         │              │
+                         │              ▼
+                         │     [agent_feedback table]
+                         │              │
+                         │              ▼  J+90
+                         └──▶  [Ground Truth · Re-training loop ♻️]
+      </pre>
+    </div>
+  </div>
+</section>
+
+<!-- ── Methodology ───────────────────────────────────────────────────────── -->
+<section id="methodology">
+  <div class="container">
+    <p class="section-tag">04 — Product Methodology</p>
+    <h2>3 Piliers · 3 Pillars</h2>
+    <p class="section-intro">La méthodologie couvre le cycle de vie complet du modèle, le contrôle humain, et la conduite du changement. The methodology covers the full model lifecycle, human control, and change management.</p>
+    <div class="rule"></div>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pillar-header">
+          <div class="pillar-num">PILIER 01 · PILLAR 01</div>
+          <div class="pillar-title">Cycle de Vie ML<br>ML Lifecycle</div>
+        </div>
+        <div class="pillar-body">
+          <ul>
+            <li>Data Quality Gate avant tout entraînement</li>
+            <li>Autopilot frugal (10 candidats, Spot, ~20€)</li>
+            <li>Batch scoring hebdo, pas d'endpoint 24/7</li>
+            <li>Model Monitor — alerte dérive PSI &gt;0.2</li>
+            <li>Champion vs Challenger avant déploiement</li>
+            <li>Rollback possible en 1h (90j de rétention)</li>
+          </ul>
+          <p class="pillar-quote">"La surveillance ne ré-entraîne jamais automatiquement. Elle alerte un humain."<br><em>Monitoring never auto-retrains. It alerts a human.</em></p>
+        </div>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-header">
+          <div class="pillar-num">PILIER 02 · PILLAR 02</div>
+          <div class="pillar-title">Human in the Loop<br>HITL</div>
+        </div>
+        <div class="pillar-body">
+          <ul>
+            <li>Agent valide avant tout contact client</li>
+            <li>Niveau 1 : agent hebdo (30 min)</li>
+            <li>Niveau 2 : DPM + Data mensuel (45 min)</li>
+            <li>Niveau 3 : Direction trimestriel (60 min)</li>
+            <li>Feedbacks → correction labels → re-training</li>
+            <li>Taux confirmation &lt;50% → alerte modèle</li>
+          </ul>
+          <p class="pillar-quote">"L'IA propose. L'humain décide."<br><em>"AI proposes. Humans decide."</em></p>
+        </div>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-header">
+          <div class="pillar-num">PILIER 03 · PILLAR 03</div>
+          <div class="pillar-title">Conduite du Changement<br>Change Management</div>
+        </div>
+        <div class="pillar-body">
+          <ul>
+            <li>Phase Alpha : 2–3 agents volontaires</li>
+            <li>Phase Beta : équipe marketing complète</li>
+            <li>Phase Prod : KPI officiel, onboarding</li>
+            <li>Formation peer-to-peer à chaque phase</li>
+            <li>Démos avec cas réels anonymisés en Sprint Review</li>
+            <li>Documentation Confluence dès Sprint 4</li>
+          </ul>
+          <p class="pillar-quote">"Un modèle précis que personne n'utilise ne vaut rien."<br><em>"A precise model nobody uses is worthless."</em></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- HITL loop visual -->
+    <h3 style="font-family:var(--font-display);font-size:1.1rem;color:var(--green-900);margin:2.5rem 0 1rem;">La Boucle Vertueuse · The Virtuous Loop</h3>
+    <div class="hitl-loop">
+      <div class="loop-step"><div class="step-icon">🤖</div><div class="step-label">Score IA<br>AI Score</div></div>
+      <span class="loop-arrow">→</span>
+      <div class="loop-step"><div class="step-icon">👤</div><div class="step-label">Validation<br>agent</div></div>
+      <span class="loop-arrow">→</span>
+      <div class="loop-step"><div class="step-icon">📞</div><div class="step-label">Action<br>CRM</div></div>
+      <span class="loop-arrow">→</span>
+      <div class="loop-step"><div class="step-icon">💾</div><div class="step-label">Feedback<br>👍 / 👎</div></div>
+      <span class="loop-arrow">→</span>
+      <div class="loop-step"><div class="step-icon">📅</div><div class="step-label">Résultat<br>J+90</div></div>
+      <span class="loop-arrow">→</span>
+      <div class="loop-step"><div class="step-icon">♻️</div><div class="step-label">Re-training<br>amélioré</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Green IT ──────────────────────────────────────────────────────────── -->
+<section id="green">
+  <div class="container">
+    <p class="section-tag">05 — Green IT · Sobriété Numérique</p>
+    <h2>−75% d'empreinte carbone</h2>
+    <p class="section-intro">Dans le secteur de l'énergie verte, la cohérence entre valeurs et choix technologiques n'est pas optionnelle. In the green energy sector, alignment between values and technology choices is not optional.</p>
+    <div class="rule"></div>
+
+    <table class="green-table">
+      <thead>
+        <tr>
+          <th>Choix technique · Technical choice</th>
+          <th>Justification Green IT</th>
+          <th>Économie · Saving</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Serverless (Lambda)</strong></td>
+          <td>Zéro serveur idle — exécution sur événement uniquement / Zero idle server — event-driven only</td>
+          <td class="saving">~100% vs EC2</td>
+        </tr>
+        <tr>
+          <td><strong>Batch scoring hebdomadaire</strong><br>Weekly batch scoring</td>
+          <td>Pas d'endpoint SageMaker 24/7 / No 24/7 SageMaker endpoint</td>
+          <td class="saving">−98% coût scoring</td>
+        </tr>
+        <tr>
+          <td><strong>Instances Spot SageMaker</strong></td>
+          <td>Moins d'émissions à l'entraînement / Lower training emissions</td>
+          <td class="saving">−65% coût &amp; CO₂</td>
+        </tr>
+        <tr>
+          <td><strong>R66 hebdomadaire</strong><br>Weekly R66 frequency</td>
+          <td>14% des invocations Lambda pour 95% de la valeur prédictive / 14% of Lambda invocations for 95% of predictive value</td>
+          <td class="saving">−85% invocations</td>
+        </tr>
+        <tr>
+          <td><strong>Région AWS Paris (eu-west-3)</strong></td>
+          <td>Électricité ~92% décarbonée + conformité RGPD / ~92% low-carbon electricity + GDPR compliance</td>
+          <td class="saving">RGPD ✓</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-family:var(--font-display);font-size:1.1rem;color:var(--green-900);margin:2.5rem 0 1rem;">🛠 Stack Technique · Tech Stack</h3>
+    <div class="stack-tags">
+      <span class="stack-tag">AWS Lambda</span>
+      <span class="stack-tag">TimescaleDB</span>
+      <span class="stack-tag">SageMaker Autopilot</span>
+      <span class="stack-tag">Power BI</span>
+      <span class="stack-tag">Python 3.12</span>
+      <span class="stack-tag">EventBridge</span>
+      <span class="stack-tag">Secrets Manager</span>
+      <span class="stack-tag">Model Monitor</span>
+      <span class="stack-tag">Agile / Scrum</span>
+      <span class="stack-tag">Jira</span>
+      <span class="stack-tag">MLOps</span>
+      <span class="stack-tag">RGPD / GDPR</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ────────────────────────────────────────────────────────────── -->
+<footer>
+  <p><strong>🔋 Retention Intelligence Engine</strong></p>
+  <p>Data Product Manager Case Study · Green Energy Sector · Mai 2026</p>
+  <p style="margin-top:0.75rem;">Cas pratique anonymisé — Données et architecture fictives à des fins de démonstration.<br>
+  Anonymized case study — Fictional data and architecture for demonstration purposes.</p>
+</footer>
+
+</body>
+</html>
