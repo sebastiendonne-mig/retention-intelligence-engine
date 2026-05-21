@@ -586,8 +586,95 @@
       </div>
     </div>
 
+      <!-- Epic 3 -->
+      <div class="epic-card">
+        <div class="epic-header" style="background:var(--green-900);">
+          <span class="epic-title">Epic 3 — Prospection IA B2B · B2B AI Prospecting Engine</span>
+          <span class="epic-meta">Sprints 3–5 · 26 SP</span>
+        </div>
+        <ul class="us-list">
+          <li class="us-item">
+            <span class="us-id">US-301</span>
+            <div>
+              <div class="us-title">Scoring Prospects B2B · B2B Prospect Scoring</div>
+              <div class="us-desc">Pipeline hebdomadaire collectant les établissements PACA via l'API Sirene/INSEE. Estimation de consommation par code NAF (référentiel ADEME) et calcul d'un Score de Potentiel B2B [0–1] sur 4 critères pondérés. / Weekly pipeline collecting PACA businesses via Sirene/INSEE API. Energy consumption estimation by NAF code and B2B Potential Score [0–1] on 4 weighted criteria.</div>
+              <span class="us-badge badge-high">HAUTE · 8 SP · S3</span>
+            </div>
+            <span class="us-signal">Sirene · ADEME</span>
+          </li>
+          <li class="us-item">
+            <span class="us-id">US-302</span>
+            <div>
+              <div class="us-title">Cartographie Zones Sous-Représentées · Under-Served Zone Mapping</div>
+              <div class="us-desc">Calcul du taux de pénétration B2B par commune et département PACA. Clustering K-means des prospects HOT pour identifier les zones industrielles et commerciales prioritaires. Export CSV de listes de prospection par zone. / B2B penetration rate by commune and PACA department. K-means clustering of HOT prospects to identify priority industrial and commercial zones. CSV export of prospecting lists by zone.</div>
+              <span class="us-badge badge-high">HAUTE · 8 SP · S4</span>
+            </div>
+            <span class="us-signal">Géo-IA · K-means</span>
+          </li>
+          <li class="us-item">
+            <span class="us-id">US-303</span>
+            <div>
+              <div class="us-title">Recommandation d'Offre par Profil NAF · NAF-Based Offer Recommendation</div>
+              <div class="us-desc">Matrice NAF → Offre co-construite avec l'équipe commerciale. Génération automatique d'une fiche prospect pré-visite avec 3 arguments personnalisés. Intégration CRM Django (création d'opportunité en 3 clics). Boucle HITL commerciale : résultats J+30 → recalibration. / NAF→Offer matrix co-built with sales team. Auto-generated pre-visit prospect sheet with 3 personalized arguments. Django CRM integration. Commercial HITL loop: J+30 results → recalibration.</div>
+              <span class="us-badge badge-impt">IMPT · 5 SP · S4–5</span>
+            </div>
+            <span class="us-signal">Recommandation IA</span>
+          </li>
+          <li class="us-item">
+            <span class="us-id">US-304</span>
+            <div>
+              <div class="us-title">Dashboard Power BI Prospection B2B · B2B Prospecting Dashboard</div>
+              <div class="us-desc">3 pages : Carte PACA (zones colorées par pénétration + clusters HOT), Top 100 Prospects (score, offre recommandée, CA potentiel, lien CRM), Performance (taux de conversion, CA signé, top secteurs). Refresh lundi 08h00. / 3 pages: PACA Map (zones colored by penetration + HOT clusters), Top 100 Prospects (score, recommended offer, potential revenue, CRM link), Performance (conversion rate, signed revenue, top sectors). Monday 8am refresh.</div>
+              <span class="us-badge badge-impt">IMPT · 5 SP · S5</span>
+            </div>
+            <span class="us-signal">Power BI · Carte</span>
+          </li>
+        </ul>
+      </div>
+
+    </div><!-- fin epic-grid -->
+
+    <!-- Tableau impact 3 Epics -->
+    <h3 style="font-family:var(--font-display);font-size:1.1rem;color:var(--green-900);margin:2rem 0 1rem;">⚡ Impact Global — 3 Epics</h3>
+    <table class="green-table">
+      <thead>
+        <tr>
+          <th>Epic</th>
+          <th>Objectif · Objective</th>
+          <th>SP</th>
+          <th>Impact estimé</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>E1 — Data Pipeline</strong></td>
+          <td>Fondation data fiable / Reliable data foundation</td>
+          <td style="text-align:center;">26</td>
+          <td class="saving">Prérequis bloquant</td>
+        </tr>
+        <tr>
+          <td><strong>E2 — Rétention IA</strong></td>
+          <td>Défendre la base 100K clients / Defend 100K customer base</td>
+          <td style="text-align:center;">23</td>
+          <td class="saving">~2,4M€ / an</td>
+        </tr>
+        <tr>
+          <td><strong>E3 — Prospection B2B</strong></td>
+          <td>Conquérir nouveaux pros PACA / Acquire new B2B customers</td>
+          <td style="text-align:center;">26</td>
+          <td class="saving">~6M€ CA additionnel</td>
+        </tr>
+        <tr>
+          <td><strong>TOTAL</strong></td>
+          <td><strong>75 Story Points · 5 Sprints · ~10 semaines</strong></td>
+          <td style="text-align:center;"><strong>75</strong></td>
+          <td class="saving" style="color:var(--green-900);">~8,4M€ impact</td>
+        </tr>
+      </tbody>
+    </table>
+
     <!-- Roadmap -->
-    <h3 style="font-family:var(--font-display);font-size:1.1rem;color:var(--green-900);margin:2rem 0 1rem;">🗓 Roadmap — 5 Sprints</h3>
+    <h3 style="font-family:var(--font-display);font-size:1.1rem;color:var(--green-900);margin:2rem 0 1rem;">🗓 Roadmap — 3 Epics · 5 Sprints</h3>
     <div class="roadmap">
       <div class="sprint-col">
         <div class="sprint-header">Sprint 1</div>
@@ -624,9 +711,10 @@
       <div class="sprint-col">
         <div class="sprint-header">Sprint 5</div>
         <div class="sprint-body">
-          <div class="sprint-us">US-204 (suite)</div>
-          <div class="sprint-us">Feedback loop</div>
-          <div class="sprint-us">Rapport ROI</div>
+          <div class="sprint-us">US-204 HITL</div>
+          <div class="sprint-us">US-303 Offre NAF</div>
+          <div class="sprint-us">US-304 Dashboard</div>
+          <div class="sprint-mvp">🎯 Double MVP : Rétention + Prospection</div>
         </div>
       </div>
     </div>
